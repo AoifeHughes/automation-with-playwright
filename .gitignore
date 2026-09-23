@@ -216,3 +216,22 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Lesson content - generated / secret data (see each lesson's README)
+# 02_Real_Project_Calendar: runtime data, captured responses, session state
+02_Real_Project_Calendar/events.json
+02_Real_Project_Calendar/due_dates.json
+02_Real_Project_Calendar/due_dates.ics
+02_Real_Project_Calendar/timetable_*.ics
+02_Real_Project_Calendar/bb_*.json
+02_Real_Project_Calendar/*_captured*.json
+02_Real_Project_Calendar/captured_responses.json
+02_Real_Project_Calendar/storage_state.json
+02_Real_Project_Calendar/*.log
+02_Real_Project_Calendar/.tmp_pass
+
+# 03_Small_Example_Calendar keeps no local secrets - it prompts for the login
+# on the command line each run (the repo-wide .env / .venv ignores cover the rest).
+
+# Local agent tooling / caches (not lesson content)
+/.cortexkit/

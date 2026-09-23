@@ -1,0 +1,20 @@
+[project]
+name = "automation-with-playwright"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "playwright>=1.62.0",
+    "icalendar>=7.3.0",
+]
+
+# A single project at the repo root means every lesson reuses one shared
+# virtualenv (`.venv/`) created by `uv sync`, rather than one env per lesson
+# folder.
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+# Keep the lint set small and predictable for the pre-commit hook (default
+# ruff checks: imports, statements, syntax errors, and pyflakes).
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
