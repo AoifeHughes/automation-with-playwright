@@ -219,8 +219,9 @@ __marimo__/
 
 # Lesson content - generated / secret data (see each lesson's README)
 # 02_Real_Project_Calendar: runtime data, captured responses, session state
-02_Real_Project_Calendar/events.json
-02_Real_Project_Calendar/due_dates.json
+# Bare names match wherever the scripts write (repo root or lesson folder).
+events.json
+due_dates.json
 02_Real_Project_Calendar/due_dates.ics
 02_Real_Project_Calendar/timetable_*.ics
 02_Real_Project_Calendar/bb_*.json

@@ -1,74 +1,52 @@
-"""Shared Microsoft/ADFS login-form automation for mytimetable.worc.ac.uk."""
+"""Prompt-driven wait for the user to finish the Microsoft/ADFS login flow.
 
-from playwright.sync_api import TimeoutError as PWTimeout
+Used by fetch_events.py and fetch_due_dates.py. The flow is: the script
+opens a headed browser, it lands on the Microsoft login form, the user
+types their credentials (and 2FA), and this helper blocks until the URL
+comes back to the app we redirected from. No credentials, env vars, vault,
+or system password store are involved.
+"""
 
+from playwright.sync_api import Page
 
-def try_fill(page, selectors, value, timeout=4000):
-    for sel in selectors:
-        try:
-            loc = page.locator(sel).first
-            loc.wait_for(state="visible", timeout=timeout)
-            loc.fill(value)
-            return True
-        except PWTimeout:
-            continue
-    return False
+PROMPT = (
+    "Please sign in to your university account in the browser window that just opened.\n"
+    "Use your usual username and password (and 2FA if prompted).\n"
+    "The script will continue automatically once you're signed in."
+)
 
-
-def try_click(page, selectors, timeout=4000):
-    for sel in selectors:
-        try:
-            loc = page.locator(sel).first
-            loc.wait_for(state="visible", timeout=timeout)
-            loc.click()
-            return True
-        except PWTimeout:
-            continue
-    return False
+_LOGIN_HOST = "login.microsoftonline.com"
+_LOGIN_HOST_ALT = "login.live.com"
+_PROMPT_DEADLINE_MS = 30_000
+_POLL_MS = 1_000
 
 
-def perform_login(page, username, password, totp=None):
-    """Drives mytimetable.worc.ac.uk's 'Log in' button through the
-    Microsoft/ADFS form. Assumes page is already at CALENDAR_URL."""
-    try_click(
-        page,
-        [
-            "button:has-text('Log in')",
-            "a:has-text('Log in')",
-            "a:has-text('Login')",
-            "button:has-text('Sign in')",
-        ],
-        timeout=6000,
-    )
+def _on_login_host(page: Page) -> bool:
+    url = page.url.lower()
+    return _LOGIN_HOST in url or _LOGIN_HOST_ALT in url
 
-    try_fill(
-        page,
-        ["input[name='loginfmt']", "#userNameInput", "input[type='email']"],
-        username,
-        timeout=8000,
-    )
-    try_click(page, ["#idSIButton9", "#submitButton", "button:has-text('Next')"], timeout=4000)
 
-    try_fill(
-        page,
-        ["input[name='passwd']", "#passwordInput", "input[type='password']"],
-        password,
-        timeout=8000,
-    )
-    try_click(page, ["#idSIButton9", "#submitButton", "button:has-text('Sign in')"], timeout=4000)
+def wait_for_user_login(page: Page, fallback_pause: bool = True) -> None:
+    """Block until the user has finished the Microsoft/ADFS login flow.
 
-    if totp:
-        filled = try_fill(
-            page,
-            ["input[name='otc']", "#idTxtBx_SAOTCC_OTC", "input[autocomplete='one-time-code']"],
-            totp,
-            timeout=6000,
+    Assumes the browser has already been navigated (or redirected) to a
+    Microsoft login URL. Polls page.url; once it leaves login.microsoftonline
+    .com / login.live.com, the user is signed in. If fallback_pause is True
+    and the URL is still on a login host after ~30s (some intermediate SSO
+    bounce our host check doesn't recognise), drop to input() so the user
+    can press Enter once they're done.
+    """
+    print(PROMPT)
+
+    elapsed = 0
+    while _on_login_host(page):
+        if elapsed >= _PROMPT_DEADLINE_MS:
+            break
+        page.wait_for_timeout(_POLL_MS)
+        elapsed += _POLL_MS
+
+    if _on_login_host(page) and fallback_pause:
+        input(
+            "\nIf anything still needs finishing (extra MFA, consent screen, etc.), "
+            "complete it in the browser, then press Enter here to continue...\n"
         )
-        if filled:
-            try_click(
-                page,
-                ["#idSubmit_SAOTCC_Continue", "#idSIButton9", "button:has-text('Verify')"],
-                timeout=4000,
-            )
-
-    try_click(page, ["#idSIButton9", "button:has-text('Yes')"], timeout=5000)

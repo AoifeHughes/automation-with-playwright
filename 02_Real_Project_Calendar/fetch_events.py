@@ -1,25 +1,24 @@
-"""
-Logs in via Vaultwarden creds, loads the requested timetable view, and saves
-all timetable events to events.json.
+"""Open mytimetable.worc.ac.uk in a headed browser, wait for you to sign in
+to the university account yourself, and dump the visible events to
+events.json.
+
+The XHR response at FilterIncludePersonalAndBookings carries the timetable
+payload as JSON; we capture it off the network rather than scraping the
+Angular UI, then flatten it into one row per event.
 
 Usage:
-    uv run python fetch_events.py [vault-master-password]
-
-If the password is omitted, it's read from Keychain instead (see
-secrets_helper.py) - that's what the weekly automated run relies on.
+    uv run python 02_Real_Project_Calendar/fetch_events.py
+    uv run python 02_Real_Project_Calendar/fetch_events.py -o my_events.json
 """
 
 import argparse
 import json
-import sys
 
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Response, sync_playwright
 
-import bw_helper
-import secrets_helper
-from config import BITWARDEN_EMAIL, CALENDAR_URL, STATE_FILE, VAULT_ITEM_NAME
-from login_flow import perform_login
+from login_flow import wait_for_user_login
 
+CALENDAR_URL = "https://mytimetable.worc.ac.uk/"
 TIMETABLE_URL = (
     "https://mytimetable.worc.ac.uk/timetables"
     "?date=2026-08-31&view=week&searchPanel=true"
@@ -27,42 +26,13 @@ TIMETABLE_URL = (
 )
 EVENTS_ENDPOINT = "FilterIncludePersonalAndBookings"
 
-parser = argparse.ArgumentParser()
-parser.add_argument("master_password", nargs="?", default=None)
-parser.add_argument("--item", default=VAULT_ITEM_NAME)
-parser.add_argument("--email", default=BITWARDEN_EMAIL)
-parser.add_argument("-o", "--out", default="events.json")
-args = parser.parse_args()
 
-master_password = args.master_password or secrets_helper.get_master_password()
-
-print("Unlocking Vaultwarden...")
-session = bw_helper.get_session(args.email, master_password)
-username = bw_helper.get_field(session, args.item, "username")
-password = bw_helper.get_field(session, args.item, "password")
-totp = bw_helper.get_field(session, args.item, "totp")
-if not username or not password:
-    sys.exit(f"Couldn't get a username/password from vault item '{args.item}'.")
-
-events_payload = {}
-
-
-def on_response(response):
-    if EVENTS_ENDPOINT in response.url:
-        try:
-            events_payload.update(response.json())
-        except Exception:
-            pass
-
-
-def flatten(payload) -> list[dict]:
+def flatten(payload: dict) -> list[dict]:
     """Pulls every ResourceEvents list out of CategoryEvents/BookingRequests/
     PersonalEvents (whichever are populated) into one flat list."""
     raw_events = []
     for section in ("CategoryEvents", "BookingRequests", "PersonalEvents"):
         results = (payload.get(section) or {}).get("Results", [])
-        # CategoryEvents entries can themselves nest Categories -> Results too,
-        # but for a personal timetable the events live directly under Results.
         for entry in results:
             raw_events.extend(entry.get("ResourceEvents", []))
 
@@ -88,28 +58,45 @@ def flatten(payload) -> list[dict]:
     return cleaned
 
 
-with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
-    context = browser.new_context()
-    page = context.new_page()
-    page.on("response", on_response)
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-o", "--out", default="events.json")
+    args = parser.parse_args()
 
-    print("Logging in...")
-    page.goto(CALENDAR_URL)
-    perform_login(page, username, password, totp)
-    page.wait_for_load_state("networkidle")
+    events_payload: dict = {}
 
-    context.storage_state(path=STATE_FILE)
+    def on_response(response: Response) -> None:
+        if EVENTS_ENDPOINT in response.url:
+            try:
+                events_payload.update(response.json())
+            except Exception:
+                pass
 
-    print("Navigating to timetable view...")
-    events_payload.clear()
-    page.goto(TIMETABLE_URL, wait_until="networkidle")
-    page.wait_for_timeout(4000)  # give the Angular app time to fetch events
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+        page.on("response", on_response)
 
-    browser.close()
+        # mytimetable.worc.ac.uk redirects to Microsoft/ADFS for login; the
+        # headed browser lands on the Microsoft form, the user fills it in,
+        # and we just wait for the URL to come back.
+        page.goto(CALENDAR_URL)
+        wait_for_user_login(page)
 
-events = flatten(events_payload)
-with open(args.out, "w") as f:
-    json.dump(events, f, indent=2)
+        print("Navigating to timetable view...")
+        events_payload.clear()
+        page.goto(TIMETABLE_URL, wait_until="networkidle")
+        page.wait_for_timeout(4000)  # give the Angular app time to fetch events
 
-print(f"Saved {len(events)} events to {args.out}")
+        browser.close()
+
+    events = flatten(events_payload)
+    with open(args.out, "w") as f:
+        json.dump(events, f, indent=2)
+
+    print(f"Saved {len(events)} events to {args.out}")
+
+
+if __name__ == "__main__":
+    main()

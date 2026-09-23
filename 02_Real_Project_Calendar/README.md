@@ -1,88 +1,133 @@
-# Lesson 02 — Real project: timetable & due dates → Proton Calendar
+# Lesson 02 — Real project: Worcester timetable + Blackboard due dates
 
 ## Objective
 
-Put the record-and-replay idea from lessons 00–01 to work on something
-real. This folder contains a working project that, once a week:
+A real Playwright automation, end to end. This folder pulls your Worcester
+timetable events and your Blackboard assignment due dates into two plain
+JSON files (`events.json` and `due_dates.json`) under your control, with no
+third-party calendar integration in the loop.
 
-1. logs into a portal that needs a Microsoft/ADFS sign-in,
-2. reads your timetable **and** your assignment due dates,
-3. syncs both into Proton Calendar — creating calendars, updating changed
-   events by UID, and deleting events that have gone.
+Both fetchers are **prompt-driven**: each one opens a headed Chromium, lands
+on the sign-in form, prints a terminal prompt asking you to sign in in the
+browser window that just opened, and waits for the URL to come back. You
+type your credentials yourself; the script just blocks until you're past
+the login host. Nothing sensitive lives in the repo.
 
-It's the natural "lesson 01, but for real" capstone. Lesson 03 is the same
-idea shrunk down to a single file if you'd rather read the whole thing in
-one sitting.
+## Files in this lesson
 
-## What the pieces do
+| File | Purpose |
+|------|---------|
+| `fetch_events.py` | Opens `mytimetable.worc.ac.uk` in a headed browser, waits for the Microsoft/ADFS login, captures the `FilterIncludePersonalAndBookings` XHR, writes `events.json`. |
+| `fetch_due_dates.py` | Opens Worcester Blackboard, walks the third-party SSO accordion, waits for the login, paginates `/learn/api/v1/calendars/dueDateCalendarItems`, writes `due_dates.json`. |
+| `login_flow.py` | Shared `wait_for_user_login(page)` helper used by both fetchers - prints the prompt, polls the URL until it leaves the Microsoft/ADFS hosts. |
+| `PROJECT.md` | The operational guide - what each script does in detail, hardcoded values, how to update for a new academic year. |
+| `screenshots/` | The walkthrough images embedded in this README. |
 
-The project is split so each concern is small and readable:
+## Before you start
 
-| File | What it does |
-|------|--------------|
-| `config.py` | Site URLs, Vaultwarden item/email, session-state file name. |
-| `bw_helper.py` | Wraps the `bw` CLI: unlock the vault, read a field, list matches. |
-| `secrets_helper.py` | Reads the Vaultwarden master password from the macOS Keychain. |
-| `login_flow.py` | Shared Playwright logic that drives the Microsoft/ADFS login form. |
-| `login_auto.py` | Interactive login *test* — opens a visible browser and pauses. Debugging aid only. |
-| `fetch_events.py` | Logs in, loads the timetable, writes `events.json`. |
-| `sync_to_proton.py` | Pushes `events.json` into Proton: creates the 3 calendars, imports/updates, deletes stale ones. |
-| `fix_reminders.py` | One-off script (already run) that sets the calendars to popup-only reminders. |
-| `fetch_due_dates.py`, `sync_due_dates_to_proton.py` | Same pattern as the timetable, for assignment due dates. |
-| `fetch_blackboard_files.py` | Downloads file attachments from Blackboard courses. |
-| `crawl_blackboard.py` | Auto-discourses every enrolled course and downloads *every* file, mirroring Blackboard's structure. Safe to rerun (tracked by `blackboard_manifest.json`). |
-| `weekly_sync.sh` | Manual one-shot: fetch, then sync. (The launchd weekly job is not part of this repo.) |
-| `login.py`, `fetch.py`, `keychain_test.py`, `explore_events.py` | Earlier prototypes/exploration, kept for reference. |
-| deps | Live in the repo-root `pyproject.toml` - run `uv sync` once at the repo root. |
+Activate the shared virtualenv once per terminal session:
 
-Sample data you can open and inspect: `events.json`, `due_dates.json`,
-`due_dates.ics`, `timetable_*.ics`. These are real, but only your own data
-shapes — good reference for what the scripts produce.
+```bash
+source ../.venv/bin/activate
+```
 
-## The full operational guide
+If you haven't synced deps in this checkout yet:
 
-The detailed how-it-actually-runs guide - secrets handling and the Keychain
-entry - lives in
-[`PROJECT.md`](PROJECT.md). Read that after you've got the shape of the
-project; it's the "operating manual" rather than the lesson.
+```bash
+uv sync                                  # at the repo root
+uv run playwright install chromium       # one-time browser download
+```
 
 ## Steps
 
+### Step 1 — Install dependencies
+
+If `uv sync` and `uv run playwright install chromium` haven't been run in
+this checkout yet, do those now (commands above). After that, both scripts
+run from the repo root with plain `uv run python`.
+
+### Step 2 — Fetch the Worcester timetable
+
 ```bash
-# 1. install dependencies (Playwright + Chromium land here)
-uv sync
-
-# 2. log in once and see the timetable captured to JSON
-uv run python fetch_events.py
-
-# 3. push it into Proton Calendar
-uv run python sync_to_proton.py
+uv run python 02_Real_Project_Calendar/fetch_events.py
 ```
 
-(Or run steps 2 + 3 together by hand via `weekly_sync.sh` - it's a manual
-one-shot now, not scheduled.)
+A headed Chromium opens, lands on the Worcester sign-in (Microsoft/ADFS for
+mytimetable), and the script prints the prompt. You sign in (username,
+password, 2FA if it asks) in the browser; the script blocks on
+`wait_for_user_login` until the URL comes back, then navigates to the
+timetable view and captures the `FilterIncludePersonalAndBookings` XHR. The
+events are flattened into a list and written to `events.json` (use `-o` to
+redirect).
+
+![Worcester Blackboard Calendar, Schedule tab, Month view](screenshots/bb_calendar_ui.png)
+*The Worcester calendar UI once you're signed in - the mytimetable page this script targets is a separate app but the idea is the same.*
+
+### Step 3 — Fetch Blackboard due dates
+
+```bash
+uv run python 02_Real_Project_Calendar/fetch_due_dates.py
+```
+
+The login shape is different here. Blackboard shows its own form first, then
+the "Sign in with a third-party account" accordion that opens onto the
+University SSO. The script's inlined `start_sso` walks that accordion and
+hands off to `wait_for_user_login`; you do the actual sign-in yourself.
+
+This is roughly what the browser shows while the script waits:
+
+![Worcester Blackboard cookie consent modal](screenshots/bb_explore.png)
+*The cookie consent modal that pops up first - the script clicks "OK" before doing anything else.*
+
+![Worcester Blackboard sign-in form](screenshots/bb_step2.png)
+*The Worcester Blackboard sign-in form - the script opens the third-party SSO accordion for you.*
+
+![Username typed into the Blackboard sign-in form](screenshots/bb_step3.png)
+*Username typed in, password next.*
+
+![Blackboard sign-in form with SSO accordion expanded](screenshots/bb_step4.png)
+*Password typed in - the "Sign in with a third-party account" accordion is expanded to reveal "University SSO Login".*
+
+![Worcester Blackboard Calendar, Schedule tab, Day view](screenshots/bb_step5.png)
+*You're on the Worcester Blackboard Calendar (Schedule tab); the script now paginates the due-dates API behind the scenes.*
+
+![Worcester Blackboard Calendar, Due Dates tab](screenshots/bb_due_dates_tab.png)
+*The Due Dates tab - what `fetch_due_dates.py` reads from under the hood, pulled from the API rather than scraped off the DOM.*
+
+Output goes to `due_dates.json` (override with `-o`).
+
+### Step 4 — What's in the JSON
+
+`events.json` is one row per session: `uid`, `name`, `description`, `type`,
+`start`, `end`, `location`, `status`, `week_label`. Order is whatever the
+timetable hands back.
+
+`due_dates.json` is one row per assignment: `uid`, `title`, `due`, `course`,
+`course_url`, `type`. Sorted ascending by `due`. `course_url` points at the
+Blackboard outline page - Turnitin LTI launches are one-time, so we use the
+stable outline URL instead.
+
+## The full operational guide
+
+The "running manual" - what each script does in detail, hardcoded values,
+how to update for a new academic year, what's tracked vs gitignored - lives
+in [`PROJECT.md`](PROJECT.md). Read it once you've got the shape from the
+steps above.
 
 ## Why this lesson matters
 
-It shows everything a real Playwright automation has to solve that the
-`example.com` demo doesn't:
+It's the lesson 01 idea stretched onto something real, and it shows the bits
+a toy scrape doesn't have to worry about:
 
-- **Authentication** you can't just `page.goto()` into — a multi-step
-  Microsoft login, TOTP, interstitial prompts.
-- **Reading data the site never renders plainly** — catching the XHR
-  response that carries the timetable JSON.
-- **Secrets** kept out of the code (Vaultwarden + Keychain), so nothing
-  sensitive is hardcoded.
-- **Idempotency** — matching by UID so edits and cancellations propagate
-  instead of piling up duplicates.
-
----
-
-> [TODO] Fill in with:
-> - a screenshot of the logged-in portal / timetable page,
-> - a screenshot of `events.json` (or `due_dates.json`) open,
-> - a screenshot of Proton Calendar showing the synced calendars,
-> - a plain-English walkthrough of `login_flow.py` and the "catch the XHR
->   response" trick in `fetch_events.py`,
-> - a short explanation of how secrets get from Vaultwarden/Keychain into
->   the run, without pasting any secrets.
+- **Authentication** you can't `page.goto()` past - a multi-step Microsoft
+  sign-in, TOTP, possible interstitials, all handled by waiting on the URL
+  and letting you type the credentials yourself.
+- **Reading data the site never renders plainly** - the timetable arrives
+  as an XHR response the Angular UI consumes, and `fetch_events.py` just
+  hooks `page.on("response", ...)` to grab it.
+- **Prompt-driven login** - no credentials, no env vars, no vault, no
+  system password store. You type your password in the browser; the script
+  waits. Nothing sensitive ends up in the repo.
+- **Two slightly different login shapes** - mytimetable goes straight to
+  Microsoft/ADFS, Blackboard makes you open a third-party SSO accordion
+  first. Same helper, two small front-ends.
