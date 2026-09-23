@@ -59,15 +59,3 @@ python replay.py my_script.py
 That is the whole loop: **record once, replay as often as you like** — and
 from here a script can grow into a scheduled job (see lesson 02), a test,
 or a scraper.
-
----
-
-> [TODO] Fill in with:
-> - a screenshot of the recorder window open on a real site (with the
->   Inspector panel visible),
-> - a screenshot of the generated `recorded_actions.py` and, ideally, the
->   Inspector showing the Python for a specific click,
-> - a screenshot of the browser replaying,
-> - a note that recording needs an *interactive* desktop session — you
->   can't record headless (it's a teaching tool, not part of an
->   unattended run).

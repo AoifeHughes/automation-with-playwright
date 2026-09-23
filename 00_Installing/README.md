@@ -49,13 +49,3 @@ python -c "from playwright.sync_api import sync_playwright; print('ok')"
 ```
 
 If that prints `ok` you're ready for lesson 01.
-
----
-
-> [TODO] Fill in with:
-> - a short note on prerequisites (Python 3.8+, `pip`, a shell),
-> - a screenshot of the installer running (virtualenv created, Chromium
->   downloading),
-> - a screenshot of the verification command output,
-> - any platform-specific gotchas (e.g. first-time macOS permission
->   prompts, Windows Defender).
