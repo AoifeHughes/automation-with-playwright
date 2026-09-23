@@ -41,8 +41,8 @@ in.
 Neither script is scheduled here - run them by hand whenever you want a
 fresh snapshot:
 
-    uv run python 02_Real_Project_Calendar/fetch_events.py
-    uv run python 02_Real_Project_Calendar/fetch_due_dates.py
+    uv run python 03_Real_Project_Calendar/fetch_events.py
+    uv run python 03_Real_Project_Calendar/fetch_due_dates.py
 
 Both are headed (`chromium.launch(headless=False)`). Both call
 `wait_for_user_login(page)` after the initial navigation, which prints a

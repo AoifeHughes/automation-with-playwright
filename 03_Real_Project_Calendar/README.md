@@ -1,4 +1,4 @@
-# Lesson 02 — Real project: Worcester timetable + Blackboard due dates
+# Lesson 03 — Real project: Worcester timetable + Blackboard due dates
 
 ## Objective
 
@@ -49,7 +49,7 @@ run from the repo root with plain `uv run python`.
 ### Step 2 — Fetch the Worcester timetable
 
 ```bash
-uv run python 02_Real_Project_Calendar/fetch_events.py
+uv run python 03_Real_Project_Calendar/fetch_events.py
 ```
 
 A headed Chromium opens, lands on the Worcester sign-in (Microsoft/ADFS for
@@ -66,7 +66,7 @@ redirect).
 ### Step 3 — Fetch Blackboard due dates
 
 ```bash
-uv run python 02_Real_Project_Calendar/fetch_due_dates.py
+uv run python 03_Real_Project_Calendar/fetch_due_dates.py
 ```
 
 The login shape is different here. Blackboard shows its own form first, then

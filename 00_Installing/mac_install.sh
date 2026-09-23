@@ -17,7 +17,7 @@ uv run playwright install chromium
 echo ""
 echo "==> Done. Run any lesson script with, e.g.:"
 echo "    uv run python 01_First_Use/record.py [url]"
-echo "    uv run python 02_Real_Project_Calendar/fetch_events.py"
+echo "    uv run python 03_Real_Project_Calendar/fetch_events.py"
 echo "    # or activate the shared venv once:"
 echo "    source ../.venv/bin/activate      # from a lesson folder"
 echo "    source .venv/bin/activate         # from the repo root"

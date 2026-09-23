@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Calculator</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      padding-top: 40px;
+    }
+
+    .calculator {
+      width: 240px;
+      background: #222;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    [data-testid="display"] {
+      background: #111;
+      color: #fff;
+      font-size: 2rem;
+      text-align: right;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .keys {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    button {
+      font-size: 1.25rem;
+      padding: 12px 0;
+      border: none;
+      border-radius: 8px;
+      background: #3a3a3a;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #4a4a4a;
+    }
+  </style>
+</head>
+<body>
+  <div class="calculator">
+    <div data-testid="display">0</div>
+    <div class="keys">
+      <button data-testid="clear">C</button>
+      <button data-testid="op-divide">÷</button>
+      <button data-testid="op-multiply">×</button>
+      <button data-testid="op-minus">−</button>
+      <button data-testid="digit-7">7</button>
+      <button data-testid="digit-8">8</button>
+      <button data-testid="digit-9">9</button>
+      <button data-testid="op-plus">+</button>
+      <button data-testid="digit-4">4</button>
+      <button data-testid="digit-5">5</button>
+      <button data-testid="digit-6">6</button>
+      <button data-testid="equals">=</button>
+      <button data-testid="digit-1">1</button>
+      <button data-testid="digit-2">2</button>
+      <button data-testid="digit-3">3</button>
+      <button data-testid="digit-0">0</button>
+    </div>
+  </div>
+  <script src="calculator.js"></script>
+</body>
+</html>

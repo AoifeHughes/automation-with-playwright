@@ -9,8 +9,9 @@ browser scripts (lesson 01).
 ## What a virtualenv is (briefly)
 
 A virtualenv (`.venv/`) is an isolated Python environment so this project's
-dependencies don't clash with anything else on your machine. Each lesson
-folder that runs scripts has its own, created by the installer below.
+dependencies don't clash with anything else on your machine. There is one
+shared virtualenv for the whole repo, at the repo root, created by the
+installer below — you activate it before running any lesson script.
 
 ## Files in this lesson
 

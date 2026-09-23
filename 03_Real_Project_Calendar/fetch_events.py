@@ -7,8 +7,8 @@ payload as JSON; we capture it off the network rather than scraping the
 Angular UI, then flatten it into one row per event.
 
 Usage:
-    uv run python 02_Real_Project_Calendar/fetch_events.py
-    uv run python 02_Real_Project_Calendar/fetch_events.py -o my_events.json
+    uv run python 03_Real_Project_Calendar/fetch_events.py
+    uv run python 03_Real_Project_Calendar/fetch_events.py -o my_events.json
 """
 
 import argparse

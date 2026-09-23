@@ -57,5 +57,5 @@ python replay.py my_script.py
 ```
 
 That is the whole loop: **record once, replay as often as you like** — and
-from here a script can grow into a scheduled job (see lesson 02), a test,
+from here a script can grow into a scheduled job, a test (see lesson 02),
 or a scraper.

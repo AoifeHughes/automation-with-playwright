@@ -8,7 +8,8 @@ happening, saves the scraped events to JSON, and then leaves the browser
 open until you close the window yourself.
 
 Usage:
-    python calendar_example/calendar_example.py [-o events.json]
+    uv run python 04_Small_Example_Calendar/calendar_example.py
+    uv run python 04_Small_Example_Calendar/calendar_example.py -o my_timetable.json
 
 You'll be prompted for the mytimetable username, password and (if the site
 asks for it) the TOTP code. Nothing is stored - just type it in when asked.

@@ -1,9 +1,9 @@
-# Lesson 03 — Small example: a real scrape, in one file
+# Lesson 04 — Small example: a real scrape, in one file
 
 ## Objective
 
 Put lessons 00–01 together into a compact, single-file program that does the
-same kind of thing as the lesson-02 project, but readable in one sitting: it
+same kind of thing as the lesson-03 project, but readable in one sitting: it
 logs into `mytimetable.worc.ac.uk`, waits for the timetable API to return, and
 saves what it finds to JSON.
 
@@ -51,7 +51,7 @@ The events are saved to `events.json` (or the path you pass with `-o`).
 
 ## Why this lesson matters
 
-It's the lesson-02 project shrunk down: no scheduled job, no secrets files,
+It's the lesson-03 project shrunk down: no scheduled job, no secrets files,
 no multi-file split. It's meant to be read top to bottom once, then changed -
 try swapping the URL, adding a wait, or printing the events as you scrape.
 That's the point of the whole thing.

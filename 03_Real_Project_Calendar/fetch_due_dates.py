@@ -8,8 +8,8 @@ we can save and reuse later; the stable URL we can record is the course
 outline page, built from calendarId.
 
 Usage:
-    uv run python 02_Real_Project_Calendar/fetch_due_dates.py
-    uv run python 02_Real_Project_Calendar/fetch_due_dates.py -o my_due.json
+    uv run python 03_Real_Project_Calendar/fetch_due_dates.py
+    uv run python 03_Real_Project_Calendar/fetch_due_dates.py -o my_due.json
 """
 
 import argparse

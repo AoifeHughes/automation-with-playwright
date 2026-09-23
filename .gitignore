@@ -195,9 +195,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#   Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #   that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#   and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#   and can be added to the global gitignore or merged into this file. However, if you prefer,
 #   you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 # Temporary file for partial code execution
@@ -218,21 +218,24 @@ __marimo__/
 .streamlit/secrets.toml
 
 # Lesson content - generated / secret data (see each lesson's README)
-# 02_Real_Project_Calendar: runtime data, captured responses, session state
+# 03_Real_Project_Calendar: runtime data, captured responses, session state
 # Bare names match wherever the scripts write (repo root or lesson folder).
 events.json
 due_dates.json
-02_Real_Project_Calendar/due_dates.ics
-02_Real_Project_Calendar/timetable_*.ics
-02_Real_Project_Calendar/bb_*.json
-02_Real_Project_Calendar/*_captured*.json
-02_Real_Project_Calendar/captured_responses.json
-02_Real_Project_Calendar/storage_state.json
-02_Real_Project_Calendar/*.log
-02_Real_Project_Calendar/.tmp_pass
+03_Real_Project_Calendar/due_dates.ics
+03_Real_Project_Calendar/timetable_*.ics
+03_Real_Project_Calendar/bb_*.json
+03_Real_Project_Calendar/*_captured*.json
+03_Real_Project_Calendar/captured_responses.json
+03_Real_Project_Calendar/storage_state.json
+03_Real_Project_Calendar/*.log
+03_Real_Project_Calendar/.tmp_pass
 
-# 03_Small_Example_Calendar keeps no local secrets - it prompts for the login
+# 04_Small_Example_Calendar keeps no local secrets - it prompts for the login
 # on the command line each run (the repo-wide .env / .venv ignores cover the rest).
 
 # Local agent tooling / caches (not lesson content)
 /.cortexkit/
+
+# macOS Finder artifacts
+.DS_Store
